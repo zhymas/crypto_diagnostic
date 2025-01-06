@@ -3,10 +3,6 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import UserRegisterSerializer, UserTokenSerializer, CustomTokenSerializer
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from .jwt import CustomRefreshToken
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 
 
 class UserRegisterView(APIView):
@@ -29,7 +25,7 @@ class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
-            # serializer.save()
+            serializer.save()
             return Response({'message': 'User registered successfully'})
         return Response(serializer.errors, status=400)
 
