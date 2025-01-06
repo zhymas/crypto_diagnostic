@@ -27,24 +27,30 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     
 class UserTokenSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         username = attrs.get('username')
         password = attrs.get('password')
 
         if self.is_email(username):
-            user = authenticate(email=username, password=password)
-        else:
-            user = authenticate(username=username, password=password)
+            try:
+                user = User.objects.get(email=username)
+                username = user.username
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Invalid credentials") 
 
+        user = authenticate(username=username, password=password)
         if user is None:
-            raise serializers.ValidationError("Invalid credentials")
+            raise serializers.ValidationError("Invalid credentials") 
         
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled")
+
         attrs['user'] = user
         return attrs
-    
+
     @staticmethod
     def is_email(value):
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return re.match(email_pattern, value) is not None
+        return bool(re.match(email_pattern, value))
