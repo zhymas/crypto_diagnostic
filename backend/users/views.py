@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-from .serializers import UserRegisterSerializer, UserTokenSerializer
+from .serializers import UserRegisterSerializer, UserTokenSerializer, CustomTokenSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .jwt import CustomRefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 
@@ -52,12 +53,12 @@ class GetTokens(APIView):
         serializer = UserTokenSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            refresh = CustomRefreshToken(user)
-            access_token = refresh.access_token
+            refresh_token = CustomTokenSerializer().get_token(user)
+            access_token = refresh_token.access_token
             
             return Response({
-                'access': str(access_token),
-                'refresh': str(refresh),
-            })
+                'access': str(refresh_token),
+                'refresh': str(access_token)
+        })
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
