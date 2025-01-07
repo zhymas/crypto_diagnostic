@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'rest_framework',
     'rest_framework_simplejwt',
-    'drf_yasg'
+    'drf_yasg',
+    'exchanges.apps.ExchangesConfig'
 ]
 
 MIDDLEWARE = [
