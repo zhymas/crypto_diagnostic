@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from .serializers import UserRegisterSerializer, UserTokenSerializer, CustomTokenSerializer
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework import status
 
 
@@ -49,12 +50,28 @@ class GetTokens(APIView):
         serializer = UserTokenSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            refresh_token = CustomTokenSerializer().get_token(user)
-            access_token = refresh_token.access_token
-            
-            return Response({
-                'access': str(refresh_token),
-                'refresh': str(access_token)
-        })
+            tokens = CustomTokenSerializer().get_token(user)
+            return Response(tokens)
         
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TokenRefreshView(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Refresh tokens",
+        request_body=TokenRefreshSerializer,
+        responses={
+            200: 'Tokens refreshed successfully',
+            400: 'Invalid input data',
+        },
+        examples={
+            'application/json': {
+                'refresh': ''
+            }
+        }
+    )
+    def post(self, request):
+        serializer = TokenRefreshSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({'access_token': serializer.validated_data['access']})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

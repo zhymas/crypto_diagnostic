@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 import re
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,8 +35,10 @@ class CustomTokenSerializer(TokenObtainPairSerializer):
 
         token['name'] = user.username
 
-        return token
-    
+        refresh_token = token
+        access_token = token.access_token
+        return {'access_token': str(access_token), 'refresh_token': str(refresh_token)}
+
 class UserTokenSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
