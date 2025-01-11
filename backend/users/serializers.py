@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 import re
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.core.mail import send_mail
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,9 +24,25 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            password=validated_data['password']
+            password=validated_data['password'],
+            is_active=False
         )
+        token = self.generate_token(user.email)
+        self.send_verification_email(user.email, token)
         return user
+    
+    def generate_token(self, email):
+        signer = TimestampSigner()
+        token = signer.sign(email)
+        return token
+
+    def send_verification_email(self, email, token):
+        subject = 'Verify your email'
+        message = f'Click <a href="http://localhost:8000/api/users/verify-email/?token={token}">here</a> to verify your email'
+        from_email = 'noreply@example.com'
+        recipient_list = [email]
+        send_mail(subject, message, from_email, recipient_list)
+        return "Email sent"
 
 class CustomTokenSerializer(TokenObtainPairSerializer):
     @classmethod
