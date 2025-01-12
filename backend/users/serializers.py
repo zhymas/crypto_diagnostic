@@ -4,9 +4,9 @@ from django.contrib.auth import authenticate
 import re
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
-from django.core.mail import send_mail
+from .mixins import UserRegisterMixin
 
-class UserRegisterSerializer(serializers.ModelSerializer):
+class UserRegisterSerializer(UserRegisterMixin, serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'password']
@@ -19,30 +19,23 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("This username is already in use.")
+        return value
     
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            is_active=False
-        )
-        token = self.generate_token(user.email)
-        self.send_verification_email(user.email, token)
-        return user
-    
-    def generate_token(self, email):
-        signer = TimestampSigner()
-        token = signer.sign(email)
-        return token
+        return self.create_user(validated_data)
 
-    def send_verification_email(self, email, token):
-        subject = 'Verify your email'
-        message = f'Click <a href="http://localhost:8000/api/users/verify-email/?token={token}">here</a> to verify your email'
-        from_email = 'noreply@example.com'
-        recipient_list = [email]
-        send_mail(subject, message, from_email, recipient_list)
-        return "Email sent"
+class VerifyEmailSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    def validate_token(self, value):
+        signer = TimestampSigner()
+        try:
+            email = signer.unsign(value)
+        except SignatureExpired:
+            raise serializers.ValidationError("Token expired")
+        except BadSignature:
+            raise serializers.ValidationError("Invalid token")
+        return email
 
 class CustomTokenSerializer(TokenObtainPairSerializer):
     @classmethod
