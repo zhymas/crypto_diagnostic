@@ -1,21 +1,33 @@
 version: "3.9"
+
 services:
+#   app:
+#     build: .
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - ./backend:/backend
+#     working_dir: /backend
+#     depends_on:
+#       - postgres
+#       - redis
+#     command: python manage.py runserver
+
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_DB: "dev_db"
-      POSTGRES_USER: "dev_user"
-      POSTGRES_PASSWORD: "dev_password"
+      POSTGRES_DB: dev_db
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - dev-data:/var/lib/postgresql/data
+      - ./postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
 
 volumes:
-  dev-data:
+  postgres:
