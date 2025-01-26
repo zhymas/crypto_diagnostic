@@ -21,6 +21,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
+    'exchanges.apps.ExchangesConfig',
+    'channels',
+    'channels_redis',
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg'
@@ -160,3 +163,14 @@ EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = os.getenv('SENDGRID_EMAIL')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+ASGI_APPLICATION = 'backend.asgi.application'
