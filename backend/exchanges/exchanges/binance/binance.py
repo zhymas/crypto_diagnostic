@@ -6,7 +6,7 @@ import websockets
 class BinanceConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
-        self.binance_task = asyncio.create_task(self.binance_listener())
+        self.binance_task = asyncio.create_task(self.binance_listener(), name="binance_listener")
 
     async def disconnect(self, close_code):
         if hasattr(self, 'binance_task'):
@@ -40,5 +40,5 @@ class BinanceConsumer(AsyncWebsocketConsumer):
 
             except Exception as e:
                 print(f"An error occurred: {e}")
-                await asyncio.sleep(5)  # Wait before retrying connection
+                await asyncio.sleep(5) 
                     
