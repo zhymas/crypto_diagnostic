@@ -174,3 +174,53 @@ CHANNEL_LAYERS = {
 }
 
 ASGI_APPLICATION = 'backend.asgi.application'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            'log_colors': {
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
+        },
+        'verbose': {
+            'format': '{asctime} - {name} - {levelname} - {message}',
+            'style': '{',
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/backend.log',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        '': {  # Root logger
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'file': { # Logger for file in case of error
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'users': {  # Logger for users app
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
+}

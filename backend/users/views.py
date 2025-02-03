@@ -5,7 +5,9 @@ from .serializers import UserRegisterSerializer, UserTokenSerializer, CustomToke
 from .mixins import VerifyEmailMixin
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework import status
+import logging
 
+logger = logging.getLogger('users')
 
 class UserRegisterView(APIView):
 
@@ -73,9 +75,11 @@ class GetTokens(APIView):
         serializer = UserTokenSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            logger.info(f"User {user.username} logged in successfully")
             tokens = CustomTokenSerializer().get_token(user)
             return Response(tokens)
         
+        logger.error(f"Login failed with errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TokenRefreshView(APIView):
